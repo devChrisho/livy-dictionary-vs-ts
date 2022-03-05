@@ -1,16 +1,11 @@
 import { Box, useTheme } from "@mui/material";
 import { useState } from "react";
-import { GetWordDefinitionsApiToUI } from "./api/GetWordDefinitions/getWordDefinitions.types";
-import Body from "./components/Body/Body";
 import Header from "./components/Header/Header";
 import ScrollToTop from "./components/navigation/ScrollToTop";
 
 function App() {
   const theme = useTheme();
-  const [definitions, setDefinitions] = useState<GetWordDefinitionsApiToUI>({
-    payload: null,
-    error: null,
-  });
+  const [definitions, setDefinitions] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   return (
@@ -23,10 +18,11 @@ function App() {
         color: theme.palette.grey[800],
         display: "flex",
         flexDirection: "column",
+        borderRadius: { xs: 2, lg: 0 },
       }}>
       <ScrollToTop />
       <Header setDefinitions={setDefinitions} setIsLoading={setIsLoading} />
-      <Body definitions={definitions} isLoading={isLoading} />
+      {/* <Body definitions={definitions} isLoading={isLoading} /> */}
     </Box>
   );
 }

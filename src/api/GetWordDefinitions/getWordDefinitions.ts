@@ -1,32 +1,32 @@
-import axios, { AxiosError } from "axios";
-import {
-  GetWordDefinitionsApiToUI,
-  GetWordDefinitionsPayload,
-} from "./getWordDefinitions.types";
+import axios from "axios";
+import { GetWordDefinitionsPayload } from "./getWordDefinitionsFromAPI.types";
 
 const getWordDefinitions = async (
   word: string,
   signal: AbortSignal,
-): Promise<GetWordDefinitionsApiToUI> => {
+): Promise<any> => {
   try {
     const response = await axios.get<GetWordDefinitionsPayload[]>(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`,
+      `https://www.dictionaryapi.com/api/v3/references/sd2/json/${word}?key=${process.env.REACT_APP_API_KEY}`,
       { signal },
     );
-    return {
-      payload: response.data,
-      error: null,
-    };
-  } catch (error) {
-    const err = error as AxiosError;
-    if (err.response) {
-      return {
-        payload: null,
-        error: err.response.data,
-      };
+    console.log(response);
+
+    if (response.data === null || response.data === undefined) {
+      const errMsg = `Data is null or undefined`;
+      console.error(errMsg);
+      throw new Error(errMsg);
     } else {
-      return { payload: null, error: null };
+      console.log("raw:", response.data);
+      const filteredResults = response.data.filter((item) => {
+        return item.hwi.hw === word;
+      });
+
+      console.log("filtered:", filteredResults);
+      return filteredResults;
     }
+  } catch (error) {
+    return [];
   }
 };
 
