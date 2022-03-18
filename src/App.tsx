@@ -1,11 +1,13 @@
 import { Box, useTheme } from "@mui/material";
 import { useState } from "react";
+import { DataToUI } from "./api/GetWordDefinitions/getWordDefinitionsToUI.types";
+import Body from "./components/Body/Body";
 import Header from "./components/Header/Header";
 import ScrollToTop from "./components/navigation/ScrollToTop";
 
 function App() {
   const theme = useTheme();
-  const [definitions, setDefinitions] = useState<any>(null);
+  const [definitions, setDefinitions] = useState<DataToUI[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   return (
@@ -22,7 +24,7 @@ function App() {
       }}>
       <ScrollToTop />
       <Header setDefinitions={setDefinitions} setIsLoading={setIsLoading} />
-      {/* <Body definitions={definitions} isLoading={isLoading} /> */}
+      <Body definitions={definitions} isLoading={isLoading} />
     </Box>
   );
 }
