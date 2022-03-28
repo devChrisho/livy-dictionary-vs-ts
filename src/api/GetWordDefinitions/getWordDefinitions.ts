@@ -3,6 +3,7 @@ import { GetWordDefinitionsPayload } from "./getWordDefinitionsFromAPI.types";
 import { DataToUI } from "./getWordDefinitionsToUI.types";
 
 const DICTIONARY_URL = `https://www.dictionaryapi.com/api/v3/references/sd2/json/`;
+// const INTERMEDIATE_DICTIONARY_URL = `https://dictionaryapi.com/api/v3/references/sd3/json/`;
 const getWordDefinitions = async (
   word: string,
   signal: AbortSignal,
