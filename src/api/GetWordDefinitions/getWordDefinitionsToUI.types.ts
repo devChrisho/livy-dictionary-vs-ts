@@ -1,13 +1,16 @@
 export interface DataToUI {
-  id: string | null;
   headWord: string | null;
-  functionalLabel: string | null;
   isOffensive: boolean;
-  stems: string[] | null;
-  pronunciations: {
-    pronunciation: string | null;
+  pronunciation: {
+    syllabic: string | null;
     sound: string | null;
-  } | null;
-  shortDefinitions: string[];
-  definitions: any;
+  };
+  defList: {
+    id: string | null;
+    function: string | null;
+    definitions: string[];
+    variations: string[] | null;
+  }[];
+  isMisSpelled: boolean;
+  spellingSuggestions: any;
 }

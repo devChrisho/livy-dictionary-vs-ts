@@ -10,7 +10,10 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "Comfortaa",
+    fontFamily: "Poppins,Quicksand, Comfortaa",
+    allVariants: {
+      color: "#775093",
+    },
   },
 });
 

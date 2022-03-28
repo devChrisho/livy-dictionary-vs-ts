@@ -6,94 +6,87 @@ const DICTIONARY_URL = `https://www.dictionaryapi.com/api/v3/references/sd2/json
 const getWordDefinitions = async (
   word: string,
   signal: AbortSignal,
-): Promise<any> => {
+): Promise<DataToUI> => {
   try {
     const response = await axios.get<GetWordDefinitionsPayload[]>(
       `${DICTIONARY_URL}${word}?key=${process.env.REACT_APP_API_KEY}`,
       { signal },
     );
 
-    console.log("raw response:", response);
     const parsedResponse = parseResponse(response);
-    const filteredResponse = filterResponse(parsedResponse, word);
-    console.log("filtered response:", filteredResponse);
-
-    if (!response.data) {
-      const errMsg = `Data is null or undefined`;
-      console.error(errMsg);
-      throw new Error(errMsg);
+    if (parsedResponse[0].hwi) {
+      const filteredResponse = filterResponse(parsedResponse, word);
+      console.log({ filteredResponse });
+      const mappedResponse = mapResponse(filteredResponse);
+      return mappedResponse;
     } else {
-      console.log("raw:", response.data);
-      const filteredResults = response.data.filter((item) => {
-        const parsedHw = item.hwi.hw?.replaceAll("*", "");
-        return parsedHw === word;
-      });
-
-      console.log("filtered:", filteredResults);
-
-      if (filteredResults.length !== 0) {
-      }
-      const parsedResponse = filteredResults.map((item) => {
-        console.log("starting to parse response");
-        const proArray = () => {
-          console.log("starting to parse pronunciation");
-          const proItem = item.hwi.prs[0];
-          const subDirectory = () => {
-            console.log("sound parsing");
-            const sound = proItem.sound.audio;
-            const bixPattern = /^bix/g;
-            const notWordPattern = /^W/g;
-            const ggPatern = /^gg/g;
-            if (sound && bixPattern.test(sound)) {
-              return "bix";
-            }
-            if (sound && ggPatern.test(sound)) {
-              return "gg";
-            }
-            if (sound && notWordPattern.test(sound)) {
-              return "number";
-            }
-            return sound?.charAt(0);
-          };
-
-          console.log("subdirectory:", subDirectory());
-          return {
-            pronunciation: proItem.mw,
-            sound: `https://media.merriam-webster.com/audio/prons/en/us/wav/${subDirectory()}/${
-              proItem.sound.audio
-            }.wav`,
-          };
-        };
-
-        console.log("proArray:", proArray());
-
-        const data = {
-          id: item.meta.id || null,
-          headWord: item.hwi.hw || null,
-          functionalLabel: item.fl || null,
-          isOffensive: item.meta.offensive,
-          stems: item.meta.stems || null,
-          pronunciations: proArray() || null,
-          shortDefinitions: item.shortdef || null,
-          definitions: item.def || null,
-        };
-
-        console.log("data:", data);
-
-        return data;
-      });
-
-      console.log("parsed:", parsedResponse);
-
-      return parsedResponse;
+      return {
+        headWord: null,
+        isOffensive: false,
+        pronunciation: {
+          syllabic: null,
+          sound: null,
+        },
+        defList: [
+          {
+            id: null,
+            function: null,
+            definitions: [],
+            variations: null,
+          },
+        ],
+        isMisSpelled: true,
+        spellingSuggestions: parsedResponse,
+      };
     }
   } catch (error) {
-    return [];
+    return {
+      headWord: null,
+      isOffensive: false,
+      pronunciation: {
+        syllabic: null,
+        sound: null,
+      },
+      defList: [
+        {
+          id: null,
+          function: null,
+          definitions: [],
+          variations: null,
+        },
+      ],
+      isMisSpelled: false,
+      spellingSuggestions: null,
+    };
   }
 };
 
+const mapResponse = (itemsList: GetWordDefinitionsPayload[]): DataToUI => {
+  return {
+    headWord: itemsList[0].hwi.hw
+      ? itemsList[0].hwi.hw.replaceAll("*", "")
+      : null,
+    isOffensive: itemsList[0].meta.offensive,
+    pronunciation: proArray(itemsList[0]),
+    defList: mapDefList(itemsList),
+    isMisSpelled: false,
+    spellingSuggestions: null,
+  };
+};
+
+const mapDefList = (itemsList: GetWordDefinitionsPayload[]) => {
+  return itemsList.map((item) => {
+    return {
+      id: item.meta.id,
+      function: item.fl,
+      definitions: item.shortdef,
+      variations: item.meta.stems,
+    };
+  });
+};
+
 const parseResponse = <T>(response: AxiosResponse<T>): T => {
-  if (response.data === null || response.data === undefined) {
+  if (!response.data) {
     const errMsg = `Data is null or undefined`;
     console.error(errMsg);
     throw new Error(errMsg);
@@ -111,6 +104,35 @@ const filterResponse = (
     return parsedHw === word;
   });
   return filteredResults;
+};
+
+const subDirectory = (sound: string) => {
+  const bixPattern = /^bix/g;
+  const notWordPattern = /^W/g;
+  const ggPatern = /^gg/g;
+
+  if (sound && bixPattern.test(sound)) {
+    return "bix";
+  }
+  if (sound && ggPatern.test(sound)) {
+    return "gg";
+  }
+  if (sound && notWordPattern.test(sound)) {
+    return "number";
+  }
+  return sound?.charAt(0);
+};
+
+const proArray = (item: GetWordDefinitionsPayload) => {
+  const proItem = item.hwi.prs[0];
+  const sound = proItem.sound.audio || "";
+
+  return {
+    syllabic: item.hwi.hw ? item.hwi.hw.replaceAll("*", "-") : "",
+    sound: `https://media.merriam-webster.com/audio/prons/en/us/wav/${subDirectory(
+      sound,
+    )}/${proItem.sound.audio}.wav`,
+  };
 };
 
 export default getWordDefinitions;

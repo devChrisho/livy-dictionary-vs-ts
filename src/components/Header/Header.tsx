@@ -8,32 +8,29 @@ import {
   useTheme,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { useState } from "react";
 import Logo from "../../lib/assets/images/livy.svg";
-import SettingsIcon from "@mui/icons-material/Settings";
-import { keyframes } from "@mui/system";
+import InfoIcon from "@mui/icons-material/Info";
 import { HeaderPropsType } from "./Header.types";
 import getWordDefinitions from "../../api/GetWordDefinitions/getWordDefinitions";
 
-const spin = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-`;
-
 let controller: AbortController;
-const Header = ({ setDefinitions, setIsLoading }: HeaderPropsType) => {
+const Header = ({
+  word,
+  setDefinitions,
+  setIsLoading,
+  setWord,
+  setWordSearched,
+  openDialog,
+  setOpenDialog,
+}: HeaderPropsType) => {
   const theme = useTheme();
-  const [word, setWord] = useState("");
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWord(event.target.value);
   };
 
   const onSubmit = async () => {
+    setWordSearched(word);
     if (controller) {
       controller.abort();
     }
@@ -75,6 +72,7 @@ const Header = ({ setDefinitions, setIsLoading }: HeaderPropsType) => {
         <InputLabel htmlFor="word-search">Word Search</InputLabel>
 
         <OutlinedInput
+          autoComplete="off"
           id="word-search"
           label="Word Search"
           type={"text"}
@@ -85,7 +83,7 @@ const Header = ({ setDefinitions, setIsLoading }: HeaderPropsType) => {
           }}
           onChange={handleChange}
           onKeyPress={(event) => {
-            if (event.key.toLowerCase() === "enter") {
+            if (event.key.toLowerCase() === "enter" && word) {
               setIsLoading(true);
               onSubmit();
             }
@@ -96,8 +94,10 @@ const Header = ({ setDefinitions, setIsLoading }: HeaderPropsType) => {
                 aria-label="toggle password visibility"
                 edge="end"
                 onClick={() => {
-                  setIsLoading(true);
-                  onSubmit();
+                  if (word) {
+                    setIsLoading(true);
+                    onSubmit();
+                  }
                 }}
                 onMouseDown={handleMouseDown}>
                 <SearchIcon />
@@ -107,19 +107,19 @@ const Header = ({ setDefinitions, setIsLoading }: HeaderPropsType) => {
         />
       </FormControl>
 
-      <SettingsIcon
+      <InfoIcon
         sx={{
           color: theme.palette.grey[600],
           transition: "all 0.5s ease",
           fontSize: { xs: "20px", sm: "30px" },
           cursor: "pointer",
-          animation: `${spin} 15s infinite linear`,
-          animationPlayState: "paused",
           ":hover": {
             color: "#5338A1",
             transition: "all 0.5s ease",
-            animationPlayState: "running",
           },
+        }}
+        onClick={() => {
+          setOpenDialog(!openDialog);
         }}
       />
     </Box>
